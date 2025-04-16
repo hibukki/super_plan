@@ -188,38 +188,46 @@ export function calculateSchedule(
         });
       } else if (flexWithoutDuration.length === 0 && totalFlexDurationRequested > 0) {
          // Only tasks with duration
-         if (availableTimeForFlex >= totalFlexDurationRequested) {
-            // Enough or surplus time: Use exactly requested duration
-            flexWithDuration.forEach(act => {
+         if (availableTimeForFlex === totalFlexDurationRequested) {
+             // Exact match
+             flexScalingFactor = 1.0; // Needed for isDurationExplicit check later
+             flexWithDuration.forEach(act => {
                  act.calculatedDurationMinutes = act.durationMinutes!;
-                 act.isDurationExplicit = true; // Explicit because requested duration is met
-            });
-            // NOTE: Surplus time is currently ignored in this case.
+                 // isDurationExplicit determined later based on final vs request
+             });
+         } else if (availableTimeForFlex > totalFlexDurationRequested) {
+             // Surplus time: Distribute surplus proportionally
+             const surplusTime = availableTimeForFlex - totalFlexDurationRequested;
+             flexScalingFactor = 1.0; // Base factor is 1, not scaling down
+
+             flexWithDuration.forEach(act => {
+                 const proportion = totalFlexDurationRequested > 0 ? (act.durationMinutes! / totalFlexDurationRequested) : (1 / flexWithDuration.length);
+                 act.calculatedDurationMinutes = act.durationMinutes! + (surplusTime * proportion);
+                 // isDurationExplicit determined later (will be false if duration changed)
+             });
          } else {
              // Shortage of time: Scale down proportionally
-            // Prevent division by zero
             flexScalingFactor = totalFlexDurationRequested > 0 ? availableTimeForFlex / totalFlexDurationRequested : 0;
             flexWithDuration.forEach(act => {
                 act.calculatedDurationMinutes = act.durationMinutes! * flexScalingFactor;
-                act.isDurationExplicit = false; // Implicit because scaled down
+                // isDurationExplicit determined later (will be false)
             });
          }
       } else if (flexWithoutDuration.length > 0 && totalFlexDurationRequested > 0) {
         // Mix of tasks: Prioritize tasks with duration (up to their request)
-        // Allocate remaining time (if any) equally to tasks without duration
+        // Distribute remaining time (including surplus) equally to tasks without duration
         const timeForFlexWithDuration = Math.min(availableTimeForFlex, totalFlexDurationRequested);
+        let flexWithDurationScaling = 1.0;
         if (totalFlexDurationRequested > 0) {
-             flexScalingFactor = timeForFlexWithDuration / totalFlexDurationRequested; // Factor is <= 1
+            flexWithDurationScaling = timeForFlexWithDuration / totalFlexDurationRequested; // Factor is <= 1
         } else {
-             flexScalingFactor = 1.0; // Avoid division by zero if only flexWithout tasks exist somehow
+            flexWithDurationScaling = 1.0;
         }
         let timeUsedByFlexWithDuration = 0;
 
         flexWithDuration.forEach(act => {
-            const allocated = act.durationMinutes! * flexScalingFactor;
+            const allocated = act.durationMinutes! * flexWithDurationScaling;
             act.calculatedDurationMinutes = allocated;
-            // Explicit only if request was fully met (factor=1) AND original duration wasn't null
-            act.isDurationExplicit = flexScalingFactor === 1.0 && act.durationMinutes != null;
             timeUsedByFlexWithDuration += allocated;
         });
 
@@ -227,34 +235,34 @@ export function calculateSchedule(
         const durationPerTaskWithout = flexWithoutDuration.length > 0 ? remainingTimeForFlexWithout / flexWithoutDuration.length : 0;
         flexWithoutDuration.forEach(act => {
             act.calculatedDurationMinutes = durationPerTaskWithout;
-            act.isDurationExplicit = false;
         });
+
       }
     }
 
 
-    // Set start times sequentially within the block
+    // Set start times sequentially within the block AND finalize explicitness
     activitiesInBlock.forEach(act => {
       act.calculatedStartTimeMinutes = currentBlockTime;
       const duration = act.calculatedDurationMinutes = act.calculatedDurationMinutes ?? 0;
-
-      // Determine final explicitness based on calculated vs original request
-      const originalRequestedDuration = act.durationMinutes; // From preprocessing
+      const originalRequestedDuration = act.durationMinutes;
       const initiallyExplicit = act.isDurationExplicit; // From preprocessing
 
+      // Final check on duration explicitness
       if (act.rigidity === 'rigid') {
-          // Explicit if not scaled AND originally explicit
-          act.isDurationExplicit = (rigidScalingFactor === 1.0 && initiallyExplicit);
+           // Explicit only if originally explicit and wasn't scaled down
+           act.isDurationExplicit = initiallyExplicit && rigidScalingFactor === 1.0;
       } else { // Flexible
-          // Explicit only if calculated matches original request AND original request existed
-          act.isDurationExplicit = (duration === originalRequestedDuration && originalRequestedDuration != null);
+           const durationMatches = originalRequestedDuration != null && Math.abs(duration - originalRequestedDuration) < 0.001;
+           // Explicit only if the calculated duration exactly matches the original non-null request
+           act.isDurationExplicit = durationMatches;
       }
 
-      // Start time is explicit only if it matched the block start anchor *and* was originally explicit
+
+      // Start time explicitness
       act.isStartTimeExplicit = currentBlockTime === blockStart && act.isStartTimeExplicit;
 
-
-      finalCalculatedActivities.push(act); // Add fully processed activity
+      finalCalculatedActivities.push(act);
       currentBlockTime = addMinutes(currentBlockTime, duration);
     });
 
