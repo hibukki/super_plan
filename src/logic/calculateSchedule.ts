@@ -246,20 +246,22 @@ export function calculateSchedule(
     // Set start times sequentially within the block
     activitiesInBlock.forEach(act => {
       act.calculatedStartTimeMinutes = currentBlockTime;
-      // If duration calculation somehow failed, default to 0
       const duration = act.calculatedDurationMinutes = act.calculatedDurationMinutes ?? 0;
 
-      // Update explicitness based on final duration vs requested
-       if (act.rigidity === 'flexible') {
-           // Flexible duration is only explicit if it perfectly matched the request (scaling factor was 1 or irrelevant)
-           // and it wasn't a 'split equally' case (durationMinutes was null)
-           act.isDurationExplicit = flexScalingFactor === 1.0 && act.durationMinutes === duration && act.durationMinutes != null;
-       } else { // Rigid
-           // Rigid duration is only explicit if it wasn't scaled down and was originally explicit
-           act.isDurationExplicit = rigidScalingFactor === 1.0 && act.isDurationExplicit;
-       }
-       // Start time is explicit only if it matched the block start anchor *and* was originally explicit
-       act.isStartTimeExplicit = currentBlockTime === blockStart && act.isStartTimeExplicit;
+      // Determine final explicitness based on calculated vs original request
+      const originalRequestedDuration = act.durationMinutes; // From preprocessing
+      const initiallyExplicit = act.isDurationExplicit; // From preprocessing
+
+      if (act.rigidity === 'rigid') {
+          // Explicit if not scaled AND originally explicit
+          act.isDurationExplicit = (rigidScalingFactor === 1.0 && initiallyExplicit);
+      } else { // Flexible
+          // Explicit only if calculated matches original request AND original request existed
+          act.isDurationExplicit = (duration === originalRequestedDuration && originalRequestedDuration != null);
+      }
+
+      // Start time is explicit only if it matched the block start anchor *and* was originally explicit
+      act.isStartTimeExplicit = currentBlockTime === blockStart && act.isStartTimeExplicit;
 
 
       finalCalculatedActivities.push(act); // Add fully processed activity
