@@ -42,8 +42,8 @@ function calculateBlock(
         if (requestedDuration !== undefined) {
             // Basic case: duration is specified
             calculatedDuration = requestedDuration;
-            // Duration is explicit only if rigid *and* specified
-            isDurationExplicit = rigidity === 'rigid';
+            // Duration is explicit if it was provided in the input
+            isDurationExplicit = true;
         } else {
             // Scenario 1 case: duration is implicit, fills the block
             calculatedDuration = blockEndTimeMinutes - currentTimeMinutes;
@@ -65,10 +65,128 @@ function calculateBlock(
             isDurationExplicit,
         });
     } else {
-        // TODO: Handle blocks with multiple activities
-        console.warn("Multi-activity block calculation not implemented yet.");
-        // Return empty for now to clearly fail tests needing this
-        return [];
+        // --- Handle blocks with multiple activities (Revised Strategy) --- 
+        
+        // --- Pass 1: Calculate available time for flexible tasks ---
+        let totalRigidDuration = 0;
+        let totalFlexibleRequestedDuration = 0;
+        let flexibleTasksCount = 0;
+
+        blockActivities.forEach(activity => {
+            const rigidity = activity.rigidity ?? (activity.duration ? 'flexible' : 'flexible');
+            const requestedDuration = activity.duration;
+
+            if (rigidity === 'rigid' && requestedDuration !== undefined) {
+                 totalRigidDuration += requestedDuration;
+            } else {
+                 flexibleTasksCount++;
+                 if (requestedDuration !== undefined) {
+                     totalFlexibleRequestedDuration += requestedDuration;
+                 }
+            }
+        });
+
+        const availableDurationForBlock = blockEndTimeMinutes - blockStartTimeMinutes;
+        const availableForFlex = availableDurationForBlock - totalRigidDuration;
+
+        // --- Determine Durations --- 
+        let flexScaleFactor = 1.0;
+        let equalFlexDuration = 0;
+
+        if (availableForFlex < 0) {
+            console.error("Block Error: Not enough time for rigid tasks. Flexible tasks get 0 duration.");
+            flexScaleFactor = 0;
+        } else if (flexibleTasksCount > 0) {
+             if (totalFlexibleRequestedDuration > 0) {
+                 flexScaleFactor = availableForFlex / totalFlexibleRequestedDuration;
+             } else if (flexibleTasksCount > 0) {
+                 // Only flexible tasks without specified duration
+                 equalFlexDuration = availableForFlex / flexibleTasksCount;
+             } else {
+                // No flexible tasks
+                flexScaleFactor = 0; // Should already be 0 if only rigid
+             }
+        } else {
+             // Only rigid tasks in block
+        }
+        
+        // --- Pass 2: Place tasks sequentially --- 
+        currentTimeMinutes = blockStartTimeMinutes; // Reset for placement pass
+        
+        for (const activity of blockActivities) {
+            const isStartTimeExplicit = !!activity.startTime;
+            const explicitStartTimeMinutes = isStartTimeExplicit ? parseTimeToMinutes(activity.startTime!) : -1;
+            const calculatedStartTimeMinutes = isStartTimeExplicit && explicitStartTimeMinutes >= currentTimeMinutes 
+                                               ? explicitStartTimeMinutes 
+                                               : currentTimeMinutes;
+            
+            if (calculatedStartTimeMinutes > blockEndTimeMinutes || (calculatedStartTimeMinutes === blockEndTimeMinutes && availableDurationForBlock > 0)) {
+                 console.warn(`Activity "${activity.name}" (${activity.id}) cannot start at or after block end time ${formatMinutesToTime(blockEndTimeMinutes)}. Skipping.`);
+                 continue; 
+            }
+
+            const calculatedStartTime = formatMinutesToTime(calculatedStartTimeMinutes);
+            currentTimeMinutes = calculatedStartTimeMinutes;
+
+            const requestedDuration = activity.duration;
+            const rigidity = activity.rigidity ?? (requestedDuration ? 'flexible' : 'flexible');
+            let calculatedDuration: number;
+            let isDurationExplicit: boolean;
+            let durationChanged = false;
+
+            if (rigidity === 'rigid' && requestedDuration !== undefined) {
+                isDurationExplicit = true; // Rigid is always explicit if requested
+                calculatedDuration = requestedDuration;
+                 // TODO: Handle scaling down rigid tasks if availableForFlex < 0
+                 if (availableForFlex < 0) {
+                     // Crude scaling down if needed - this is not fully correct yet
+                     // calculatedDuration *= (availableDurationForBlock / totalRigidDuration); // Example scaling
+                     console.warn(`Rigid task ${activity.name} duration might need scaling down (not implemented).`);
+                 }
+                 durationChanged = Math.abs(calculatedDuration - requestedDuration) > 0.001;
+            } else {
+                // Flexible task (or rigid without duration)
+                isDurationExplicit = true; // Assume true unless changed
+                if (requestedDuration !== undefined) {
+                    // Apply scaling factor
+                    calculatedDuration = requestedDuration * flexScaleFactor;
+                    durationChanged = Math.abs(calculatedDuration - requestedDuration) > 0.001;
+                } else {
+                    // No requested duration - assign equal part or 0
+                    calculatedDuration = equalFlexDuration; 
+                    isDurationExplicit = false; // Implicit because calculated equally
+                    durationChanged = calculatedDuration > 0; // Changed if it got time
+                }
+            }
+            
+            // Final check for block end boundary
+             if (currentTimeMinutes + calculatedDuration > blockEndTimeMinutes) {
+                const truncatedDuration = blockEndTimeMinutes - currentTimeMinutes;
+                 if (Math.abs(truncatedDuration - calculatedDuration) > 0.001) {
+                     durationChanged = true;
+                 }
+                calculatedDuration = truncatedDuration;
+            }
+            calculatedDuration = Math.max(0, calculatedDuration);
+
+            // Update explicitness based on whether duration changed
+            if (durationChanged) {
+                 isDurationExplicit = false;
+            }
+
+            calculatedBlock.push({
+                id: activity.id,
+                name: activity.name,
+                duration: activity.duration ?? 0, // Keep original request
+                rigidity: rigidity,
+                calculatedStartTime,
+                calculatedDuration,
+                isStartTimeExplicit,
+                isDurationExplicit,
+            });
+
+            currentTimeMinutes += calculatedDuration;
+        }
     }
 
     return calculatedBlock;

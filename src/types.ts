@@ -24,6 +24,7 @@ export interface CalculatedActivity extends Required<Omit<InputActivity, 'startT
 export interface Schedule {
   startTime: string; // e.g., "08:00"
   endTime: string; // e.g., "18:00"
+  activities: InputActivity[]; // Add the activities field
   // Activities will be processed, maybe use InputActivity[] as input
   // and CalculatedActivity[] as output from the calculation function.
 }
