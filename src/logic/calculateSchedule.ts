@@ -188,16 +188,27 @@ export function calculateSchedule(
         });
       } else if (flexWithoutDuration.length === 0 && totalFlexDurationRequested > 0) {
          // Only tasks with duration
-         if (availableTimeForFlex >= totalFlexDurationRequested) {
-            // Enough or surplus time: Use requested duration
-            flexScalingFactor = 1.0; // Treat as unscaled
-            flexWithDuration.forEach(act => {
+         if (availableTimeForFlex === totalFlexDurationRequested) {
+             // Exact match: Use requested duration
+             flexScalingFactor = 1.0;
+             flexWithDuration.forEach(act => {
                  act.calculatedDurationMinutes = act.durationMinutes!;
                  act.isDurationExplicit = true; // Explicit because requested duration is met
-            });
+             });
+         } else if (availableTimeForFlex > totalFlexDurationRequested) {
+             // Surplus time: Scale up proportionally to fill block
+             flexScalingFactor = totalFlexDurationRequested > 0 ? availableTimeForFlex / totalFlexDurationRequested : 1.0; // factor > 1
+             flexWithDuration.forEach(act => {
+                 const baseDuration = act.durationMinutes! > 0 ? act.durationMinutes! : 0; // Use 0 if original duration was 0 or null
+                 const scaledDuration = baseDuration * flexScalingFactor;
+                 act.calculatedDurationMinutes = scaledDuration;
+                 // Implicit if scaled, explicit only if factor is 1 AND original duration existed
+                 act.isDurationExplicit = (flexScalingFactor === 1.0 && act.durationMinutes != null);
+             });
          } else {
              // Shortage of time: Scale down proportionally
-            flexScalingFactor = availableTimeForFlex / totalFlexDurationRequested;
+            // Prevent division by zero
+            flexScalingFactor = totalFlexDurationRequested > 0 ? availableTimeForFlex / totalFlexDurationRequested : 0; // factor < 1
             flexWithDuration.forEach(act => {
                 act.calculatedDurationMinutes = act.durationMinutes! * flexScalingFactor;
                 act.isDurationExplicit = false; // Implicit because scaled down
