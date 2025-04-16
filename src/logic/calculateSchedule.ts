@@ -176,36 +176,49 @@ export function calculateSchedule(
     if (flexibleActivities.length > 0) {
       if (availableTimeForFlex <= 0 && totalFlexDurationRequested > 0) {
          console.warn(` -> Warning: No time left for flexible tasks in block ${minutesToTime(blockStart)}-${minutesToTime(actualBlockEnd)}.`);
-         // Assign 0 duration to all flexible tasks
          flexibleActivities.forEach(act => {
              act.calculatedDurationMinutes = 0;
              act.isDurationExplicit = false;
          });
       } else if (flexWithoutDuration.length > 0 && totalFlexDurationRequested === 0) {
-        // Only tasks without duration, split equally
         const durationPerTask = availableTimeForFlex / flexWithoutDuration.length;
         flexWithoutDuration.forEach(act => {
           act.calculatedDurationMinutes = durationPerTask;
           act.isDurationExplicit = false;
         });
       } else if (flexWithoutDuration.length === 0 && totalFlexDurationRequested > 0) {
-         // Only tasks with duration, scale proportionally
-         flexScalingFactor = availableTimeForFlex / totalFlexDurationRequested;
-         flexWithDuration.forEach(act => {
-             act.calculatedDurationMinutes = act.durationMinutes! * flexScalingFactor;
-             act.isDurationExplicit = flexScalingFactor === 1.0; // Explicit only if not scaled
-         });
+         // Only tasks with duration
+         if (availableTimeForFlex >= totalFlexDurationRequested) {
+            // Enough or surplus time: Use requested duration
+            flexScalingFactor = 1.0; // Treat as unscaled
+            flexWithDuration.forEach(act => {
+                 act.calculatedDurationMinutes = act.durationMinutes!;
+                 act.isDurationExplicit = true; // Explicit because requested duration is met
+            });
+         } else {
+             // Shortage of time: Scale down proportionally
+            flexScalingFactor = availableTimeForFlex / totalFlexDurationRequested;
+            flexWithDuration.forEach(act => {
+                act.calculatedDurationMinutes = act.durationMinutes! * flexScalingFactor;
+                act.isDurationExplicit = false; // Implicit because scaled down
+            });
+         }
       } else if (flexWithoutDuration.length > 0 && totalFlexDurationRequested > 0) {
-        // Mix of tasks with and without duration. Prioritize those with duration.
-        // Simple approach: Allocate to tasks with duration first (scaling if needed)
-        // then split remainder among tasks without duration.
-
-        flexScalingFactor = Math.min(1.0, availableTimeForFlex / totalFlexDurationRequested); // Don't scale up beyond request if time allows
+        // Mix of tasks: Prioritize tasks with duration (up to their request)
+        // Allocate remaining time (if any) equally to tasks without duration
+        const timeForFlexWithDuration = Math.min(availableTimeForFlex, totalFlexDurationRequested);
+        if (totalFlexDurationRequested > 0) {
+             flexScalingFactor = timeForFlexWithDuration / totalFlexDurationRequested; // Factor is <= 1
+        } else {
+             flexScalingFactor = 1.0; // Avoid division by zero if only flexWithout tasks exist somehow
+        }
         let timeUsedByFlexWithDuration = 0;
+
         flexWithDuration.forEach(act => {
             const allocated = act.durationMinutes! * flexScalingFactor;
             act.calculatedDurationMinutes = allocated;
-            act.isDurationExplicit = flexScalingFactor === 1.0; // Explicit only if requested duration met
+            // Explicit only if request was fully met (factor=1) AND original duration wasn't null
+            act.isDurationExplicit = flexScalingFactor === 1.0 && act.durationMinutes != null;
             timeUsedByFlexWithDuration += allocated;
         });
 
@@ -216,8 +229,6 @@ export function calculateSchedule(
             act.isDurationExplicit = false;
         });
       }
-      // Else case: availableTimeForFlex > 0 but no flexible tasks requested time (e.g., only flexWithoutDuration tasks when availableTime is 0)
-      // This is handled by the initial zero duration assignment if availableTimeForFlex <= 0
     }
 
 
