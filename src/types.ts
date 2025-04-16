@@ -11,13 +11,14 @@ export interface InputActivity {
 }
 
 // Output format after calculation
-export interface CalculatedActivity extends Required<Omit<InputActivity, 'startTime' | 'endTime' | 'rigidity'>> {
-  rigidity: Rigidity; // Rigidity is always present in output, defaulting from duration if needed
+export interface CalculatedActivity {
+  id: string;
+  name: string;
+  rigidity: Rigidity;
   calculatedStartTime: string; // "HH:MM"
   calculatedDuration: number; // minutes
   isStartTimeExplicit: boolean;
   isDurationExplicit: boolean;
-  // We might not need endTime explicitly in the output if we always have start + duration
 }
 
 // Schedule definition remains the same for overall boundaries
