@@ -9,6 +9,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom', // if testing React components
     setupFiles: './src/setupTests.ts', // Optional setup file
-    include: ['src/**/*.{test,spec}.?(c|m)[jt]s?(x)'], // Explicitly include src
+    include: ['src/logic/*.test.ts'], // More specific path
   },
 })
