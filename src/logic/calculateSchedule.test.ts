@@ -116,9 +116,9 @@ const scenarios: Scenario[] = [
         "expected_plan": {
             // Total requested: 240 min. Total available: 8 hours = 480 min.
             // Proportional scaling: Factor = 480 / 240 = 2
-            "1": {"name": "Task A", "start_time": ["09:00", "implicit"], "duration": [120, "implicit"]}, // 60 * 2
-            "2": {"name": "Task B", "start_time": ["11:00", "implicit"], "duration": [240, "implicit"]}, // 120 * 2
-            "3": {"name": "Task C", "start_time": ["15:00", "implicit"], "duration": [120, "implicit"]}  // 60 * 2
+            "1": {"name": "Task A", "start_time": ["09:00", "implicit"], "duration": [120, "implicit"]},
+            "2": {"name": "Task B", "start_time": ["11:00", "implicit"], "duration": [240, "implicit"]},
+            "3": {"name": "Task C", "start_time": ["15:00", "implicit"], "duration": [120, "implicit"]}
         }
     },
     {
@@ -158,9 +158,9 @@ const scenarios: Scenario[] = [
             // Available time for flex tasks: 90 - 15 = 75 min. Requested: 120 min.
             // Scaling factor: 75 / 120 = 0.625
             "1": {"name": "Team Huddle", "start_time": ["09:00", "explicit"], "duration": [15, "explicit"]},
-            "2": {"name": "Task A", "start_time": ["09:15", "implicit"], "duration": [37.5, "implicit"]}, // 60 * 0.625
-            "3": {"name": "Task B", "start_time": ["09:52.5", "implicit"], "duration": [37.5, "implicit"]}, // 60 * 0.625
-            "4": {"name": "Client Call", "start_time": ["10:30", "explicit"], "duration": [45, "explicit"]} // Finishes at 11:15
+            "2": {"name": "Task A", "start_time": ["09:15", "implicit"], "duration": [37.5, "implicit"]},
+            "3": {"name": "Task B", "start_time": ["09:52.5", "implicit"], "duration": [37.5, "implicit"]},
+            "4": {"name": "Client Call", "start_time": ["10:30", "explicit"], "duration": [45, "explicit"]}
         }
     },
     {
@@ -176,9 +176,9 @@ const scenarios: Scenario[] = [
             // Block 1: 9:00 - 12:00 (180 min). Task 1 fixed (30 min). Task 2 rigid (60 min). Task 3 flexible (req 120 min).
             // Available time for flex tasks: 180 - 30 - 60 = 90 min. Task 3 gets this time.
             "1": {"name": "Morning Review", "start_time": ["09:00", "explicit"], "duration": [30, "explicit"]},
-            "2": {"name": "Critical Task", "start_time": ["09:30", "implicit"], "duration": [60, "explicit"]}, // Rigidity makes duration explicit
+            "2": {"name": "Critical Task", "start_time": ["09:30", "implicit"], "duration": [60, "explicit"]},
             "3": {"name": "Flexible Task", "start_time": ["10:30", "implicit"], "duration": [90, "implicit"]},
-            "4": {"name": "Lunch Break", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]} // Finishes at 13:00
+            "4": {"name": "Lunch Break", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]}
         }
     },
      {
@@ -195,9 +195,9 @@ const scenarios: Scenario[] = [
             // Available time for rigid tasks: 90 - 30 = 60 min. Requested: 120 min.
             // Rigid tasks are scaled down proportionally. Factor = 60 / 120 = 0.5
             "1": {"name": "Meeting A", "start_time": ["09:00", "explicit"], "duration": [30, "explicit"]},
-            "2": {"name": "Critical Task 1", "start_time": ["09:30", "implicit"], "duration": [30, "implicit"]}, // 60 * 0.5 (Implicit because scaled)
-            "3": {"name": "Critical Task 2", "start_time": ["10:00", "implicit"], "duration": [30, "implicit"]}, // 60 * 0.5 (Implicit because scaled)
-            "4": {"name": "Meeting B", "start_time": ["10:30", "explicit"], "duration": [30, "explicit"]} // Finishes at 11:00
+            "2": {"name": "Critical Task 1", "start_time": ["09:30", "implicit"], "duration": [30, "implicit"]},
+            "3": {"name": "Critical Task 2", "start_time": ["10:00", "implicit"], "duration": [30, "implicit"]},
+            "4": {"name": "Meeting B", "start_time": ["10:30", "explicit"], "duration": [30, "explicit"]}
         }
     },
     {
@@ -215,10 +215,10 @@ const scenarios: Scenario[] = [
             // Available time for flex tasks: 180 - 15 - 60 = 105 min. Requested: 150 min.
             // Scaling factor for flex tasks: 105 / 150 = 0.7
             "1": {"name": "Morning Standup", "start_time": ["09:00", "explicit"], "duration": [15, "explicit"]},
-            "2": {"name": "Critical Bug Fix", "start_time": ["09:15", "implicit"], "duration": [60, "explicit"]}, // Rigid duration is met
-            "3": {"name": "Documentation", "start_time": ["10:15", "implicit"], "duration": [84, "implicit"]}, // 120 * 0.7
-            "4": {"name": "Email", "start_time": ["11:39", "implicit"], "duration": [21, "implicit"]}, // 30 * 0.7
-            "5": {"name": "Lunch Break", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]} // Finishes at 13:00
+            "2": {"name": "Critical Bug Fix", "start_time": ["09:15", "implicit"], "duration": [60, "explicit"]},
+            "3": {"name": "Documentation", "start_time": ["10:15", "implicit"], "duration": [84, "implicit"]},
+            "4": {"name": "Email", "start_time": ["11:39", "implicit"], "duration": [21, "implicit"]},
+            "5": {"name": "Lunch Break", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]}
         }
     },
     {
@@ -226,8 +226,8 @@ const scenarios: Scenario[] = [
          // Assumes default 9:00 start, 17:00 end
         "user_request": {
             "1": {"name": "Morning Meeting", "start_time": "09:00", "duration": [30, "flexible"]},
-            "2": {"name": "Work Block A"}, // No duration/rigidity
-            "3": {"name": "Work Block B"}, // No duration/rigidity
+            "2": {"name": "Work Block A"},
+            "3": {"name": "Work Block B"},
             "4": {"name": "Lunch", "start_time": "12:00", "duration": [60, "flexible"]}
         },
         "expected_plan": {
@@ -236,7 +236,7 @@ const scenarios: Scenario[] = [
             "1": {"name": "Morning Meeting", "start_time": ["09:00", "explicit"], "duration": [30, "explicit"]},
             "2": {"name": "Work Block A", "start_time": ["09:30", "implicit"], "duration": [75, "implicit"]},
             "3": {"name": "Work Block B", "start_time": ["10:45", "implicit"], "duration": [75, "implicit"]},
-            "4": {"name": "Lunch", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]} // Finishes at 13:00
+            "4": {"name": "Lunch", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]}
         }
     },
      {
@@ -244,14 +244,14 @@ const scenarios: Scenario[] = [
          // Assumes default 9:00 start, 17:00 end
         "user_request": {
             "1": {"name": "Morning Routine", "start_time": "09:00", "duration": [60, "flexible"]},
-            "2": {"name": "Work Session", "duration": [180, "flexible"], "end_time": "13:00"} // End time constraint
+            "2": {"name": "Work Session", "duration": [180, "flexible"], "end_time": "13:00"}
         },
         "expected_plan": {
             // Task 1 finishes at 10:00. Task 2 must end at 13:00.
             // Task 2 starts implicitly at 10:00. Duration = 13:00 - 10:00 = 180 min.
             // Requested duration (180 min) matches calculated duration.
             "1": {"name": "Morning Routine", "start_time": ["09:00", "explicit"], "duration": [60, "explicit"]},
-            "2": {"name": "Work Session", "start_time": ["10:00", "implicit"], "duration": [180, "explicit"]} // Duration becomes explicit due to end_time constraint
+            "2": {"name": "Work Session", "start_time": ["10:00", "implicit"], "duration": [180, "explicit"]}
         }
     },
     {
@@ -262,7 +262,7 @@ const scenarios: Scenario[] = [
             "2": {"name": "Email", "duration": [30, "flexible"]},
             "3": {"name": "Team Meeting", "start_time": "09:00", "duration": [60, "flexible"]},
             "4": {"name": "Project Work", "duration": [120, "flexible"]},
-            "5": {"name": "Lunch", "start_time": "12:00", "duration": [60, "rigid"]}, // Note: Lunch rigidity changed to rigid
+            "5": {"name": "Lunch", "start_time": "12:00", "duration": [60, "rigid"]},
             "6": {"name": "Critical Task", "duration": [90, "rigid"]},
             "7": {"name": "Admin Work", "duration": [60, "flexible"]},
             "8": {"name": "Learning", "duration": [60, "flexible"]},
@@ -274,28 +274,28 @@ const scenarios: Scenario[] = [
             "2": {"name": "Email", "start_time": ["08:00", "implicit"], "duration": [60, "implicit"]},
             // Block 2: 9:00 - 12:00 (180 min). Task 3 fixed (60 min). Task 4 flex (req 120 min). Available: 120 min.
             "3": {"name": "Team Meeting", "start_time": ["09:00", "explicit"], "duration": [60, "explicit"]},
-            "4": {"name": "Project Work", "start_time": ["10:00", "implicit"], "duration": [120, "implicit"]}, // Matches request exactly
+            "4": {"name": "Project Work", "start_time": ["10:00", "implicit"], "duration": [120, "implicit"]},
             // Block 3: 12:00 - 17:00 (300 min). Task 5 fixed+rigid (60 min). Task 6 rigid (90 min). Task 7 flex (req 60 min). Task 8 flex (req 60 min).
             // Available time for flex: 300 - 60 - 90 = 150 min. Requested flex: 60 + 60 = 120 min.
             // Flex tasks get more time proportionally. Factor = 150 / 120 = 1.25
-            "5": {"name": "Lunch", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]}, // Rigidity makes duration explicit
-            "6": {"name": "Critical Task", "start_time": ["13:00", "implicit"], "duration": [90, "explicit"]}, // Rigidity makes duration explicit
-            "7": {"name": "Admin Work", "start_time": ["14:30", "implicit"], "duration": [75, "implicit"]}, // 60 * 1.25
-            "8": {"name": "Learning", "start_time": ["15:45", "implicit"], "duration": [75, "implicit"]}, // 60 * 1.25
+            "5": {"name": "Lunch", "start_time": ["12:00", "explicit"], "duration": [60, "explicit"]},
+            "6": {"name": "Critical Task", "start_time": ["13:00", "implicit"], "duration": [90, "explicit"]},
+            "7": {"name": "Admin Work", "start_time": ["14:30", "implicit"], "duration": [75, "implicit"]},
+            "8": {"name": "Learning", "start_time": ["15:45", "implicit"], "duration": [75, "implicit"]},
             // Block 4: 17:00 onwards. Task 9 fixed (30 min).
             "9": {"name": "Evening Wrap-up", "start_time": ["17:00", "explicit"], "duration": [30, "explicit"]}
         },
-        "schedule_start_time": "07:00", // Override default start
-        "schedule_end_time": "17:30" // Override default end (based on last task finish)
+        "schedule_start_time": "07:00",
+        "schedule_end_time": "17:30"
     },
      {
         "scenario": "Tasks with a mix of duration specifications",
          // Assumes default 9:00 start, 17:00 end
         "user_request": {
-            "1": {"name": "Task A", "start_time": "09:00"}, // Use 09:00
+            "1": {"name": "Task A", "start_time": "09:00"},
             "2": {"name": "Task B", "duration": [60, "flexible"]},
             "3": {"name": "Task C", "duration": [90, "rigid"]},
-            "4": {"name": "Task D"}, // No duration
+            "4": {"name": "Task D"},
             "5": {"name": "Task E", "start_time": "13:00", "duration": [60, "flexible"]}
         },
         "expected_plan": {
@@ -303,11 +303,11 @@ const scenarios: Scenario[] = [
             // Rigid takes precedence: 90 min. Available for Task 1, 2, 4: 240 - 90 = 150 min.
             // Task 2 flex requests 60 min. Available for Task 1, 4: 150 - 60 = 90 min.
             // Split 90 min equally between Task 1 and Task 4.
-            "1": {"name": "Task A", "start_time": ["09:00", "explicit"], "duration": [45, "implicit"]}, // Implicit, split remaining
-            "2": {"name": "Task B", "start_time": ["09:45", "implicit"], "duration": [60, "explicit"]}, // Explicit flex duration met
-            "3": {"name": "Task C", "start_time": ["10:45", "implicit"], "duration": [90, "explicit"]}, // Explicit rigid duration met
-            "4": {"name": "Task D", "start_time": ["12:15", "implicit"], "duration": [45, "implicit"]}, // Implicit, split remaining
-            "5": {"name": "Task E", "start_time": ["13:00", "explicit"], "duration": [60, "explicit"]} // Finishes at 14:00
+            "1": {"name": "Task A", "start_time": ["09:00", "explicit"], "duration": [45, "implicit"]},
+            "2": {"name": "Task B", "start_time": ["09:45", "implicit"], "duration": [60, "explicit"]},
+            "3": {"name": "Task C", "start_time": ["10:45", "implicit"], "duration": [90, "explicit"]},
+            "4": {"name": "Task D", "start_time": ["12:15", "implicit"], "duration": [45, "implicit"]},
+            "5": {"name": "Task E", "start_time": ["13:00", "explicit"], "duration": [60, "explicit"]}
         }
     },
     {
@@ -315,9 +315,9 @@ const scenarios: Scenario[] = [
         // Assumes default 9:00 start, 17:00 end
         "user_request": {
             "1": {"name": "Task A", "start_time": "09:00", "duration": [30, "flexible"]},
-            "2": {"name": "Task B", "start_time": "10:00"}, // Missing duration
+            "2": {"name": "Task B", "start_time": "10:00"},
             "3": {"name": "Task C", "start_time": "11:00", "duration": [60, "flexible"]},
-            "4": {"name": "Task D", "start_time": "13:00"} // Missing duration
+            "4": {"name": "Task D", "start_time": "13:00"}
         },
         "expected_plan": {
             // Task 1: 9:00 - 9:30 (Fixed)
@@ -340,8 +340,8 @@ describe('calculateSchedule', () => {
 
       const result = calculateSchedule(
         inputActivities,
-        scenario.schedule_start_time, // Uses default '09:00' if undefined
-        scenario.schedule_end_time    // Uses default '17:00' if undefined
+        scenario.schedule_start_time,
+        scenario.schedule_end_time
       );
 
       // Check length first
@@ -349,10 +349,14 @@ describe('calculateSchedule', () => {
 
       // Check each activity partially, handling floating point comparison
       expectedPartialActivities.forEach((expectedActivity, index) => {
-        const { calculatedDuration: expectedDuration, ...restOfExpected } = expectedActivity;
-        expect(result[index]).toMatchObject(restOfExpected);
+        const actualActivity = result[index];
+        expect(actualActivity.id).toBe(expectedActivity.id);
+        expect(actualActivity.name).toBe(expectedActivity.name);
+        expect(actualActivity.calculatedStartTime).toBe(expectedActivity.calculatedStartTime);
+        expect(actualActivity.isStartTimeExplicit).toBe(expectedActivity.isStartTimeExplicit);
+        expect(actualActivity.isDurationExplicit).toBe(expectedActivity.isDurationExplicit);
         // Use toBeCloseTo for duration comparison
-        expect(result[index].calculatedDuration).toBeCloseTo(expectedDuration!);
+        expect(actualActivity.calculatedDuration).toBeCloseTo(expectedActivity.calculatedDuration!);
       });
     });
   });
