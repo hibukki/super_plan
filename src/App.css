@@ -47,17 +47,18 @@ table {
   margin-top: 1em;
 }
 
-th, td {
-  border: 1px solid #444;
+th,
+td {
+  border: 1px solid var(--table-border-color);
   padding: 0.5em;
   text-align: left;
 }
 
 thead {
-  background-color: #333;
+  background-color: var(--table-header-bg-color);
 }
 
 .focused {
-  background-color: #555; /* Simple highlight for focused row */
+  background-color: var(--focused-row-bg-color);
   outline: 2px solid #646cff; /* Add an outline */
 }
